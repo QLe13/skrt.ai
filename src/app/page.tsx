@@ -1,113 +1,151 @@
-import Image from "next/image";
 
-export default function Home() {
+'use client'
+import React, { useState, useEffect } from 'react';
+import { GrPaint } from "react-icons/gr";
+import { FaUserAstronaut } from "react-icons/fa";
+import { IoIosColorPalette } from "react-icons/io";
+import { FaCircleChevronDown } from "react-icons/fa6";
+
+const Home: React.FC = () => {
+  const [currentSection, setCurrentSection] = useState(0);
+  const totalSections = 4; // Update this based on the actual number of sections
+  
+  // Debounce function to limit the rate at which a function is executed
+// Define a generic type for the function to allow any function to be passed with its specific signature
+  const debounce = <F extends (...args: any[]) => any>(func: F, delay: number): ((...args: Parameters<F>) => void) => {
+    let inDebounce: ReturnType<typeof setTimeout> | null; // Use ReturnType to get the correct type for setTimeout
+    return function(this: ThisParameterType<F>, ...args: Parameters<F>) { // Use spread operator for arguments
+      const context = this; // Preserve 'this' context
+      clearTimeout(inDebounce as NodeJS.Timeout); // Clear previous timeout, casting inDebounce because it can be null
+      inDebounce = setTimeout(() => func.apply(context, args), delay);
+    };
+  };
+  
+
+  const handleScroll = (e: WheelEvent) => {
+    e.preventDefault();
+    if (e.deltaY > 0) {
+      // Scroll Down
+      setCurrentSection(prev => prev < totalSections - 1 ? prev + 1 : prev);
+    } else {
+      // Scroll Up
+      setCurrentSection(prev => prev > 0 ? prev - 1 : prev);
+    }
+  };
+
+  // Wrapping handleScroll with debounce
+  const debouncedHandleScroll = debounce(handleScroll, 34);
+
+  useEffect(() => {
+    const scrollEvent = 'wheel';
+    window.addEventListener(scrollEvent, debouncedHandleScroll, { passive: false });
+
+    return () => {
+      window.removeEventListener(scrollEvent, debouncedHandleScroll);
+    };
+  }, [debouncedHandleScroll]); // Make sure to include debouncedHandleScroll here to avoid re-creating the debounced function on every render
+
+
   return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 max-w-5xl w-full items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            By{" "}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+    <div className="relative flex flex-col min-h-full overflow-hidden ">
+      {Array.from({ length: totalSections }).map((_, index) => (
+        <div
+          key={index}
+          className={`fixed top-0 left-0 w-full h-full flex flex-col justify-center items-center text-center transition-transform duration-700 ease-in-out ${
+            index - currentSection === 0
+              ? "translate-y-0"
+              : index - currentSection < 0
+              ? "-translate-y-full"
+              : "translate-y-full"
+          }`}
+        >
+          {index === 0 && (
+            <SectionHero />
+          )}
+          {index === 1 && (
+            <SectionFeatures />
+          )}
+          {index === 2 && (
+            <SectionHowItWorks />
+          )}
+          {index === 3 && (
+            <SectionFooter />
+          )}
         </div>
-      </div>
-
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-full sm:before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-full sm:after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
-        />
-      </div>
-
-      <div className="mb-32 grid text-center lg:max-w-5xl lg:w-full lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore starter templates for Next.js.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{" "}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50 text-balance`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
-    </main>
+      ))}
+    </div>
   );
-}
+};
+
+const SectionHero = () => (
+  <div className="text-white bg-gradient-to-r from-purple-500 to-pink-500 p-12 space-y-4">
+    {/* Hero Section Content */}
+    <div className="h-screen flex flex-col justify-center items-center text-white text-center bg-gradient-to-r from-purple-500 to-pink-500 p-12 space-y-4">
+        <h1 className="text-4xl md:text-5xl font-bold">Welcome to sKrt.ai</h1>
+        <p className="text-xl md:text-2xl">Explore the intersection of art and AI technology. Create, innovate, and bring your visions to life with our cutting-edge AI-powered tools. Celebrate creativity and contribute to the arts in a unique and impactful way.</p>
+        <button className="mt-4 bg-black text-white hover:bg-gray-700 font-bold py-2 px-4 rounded-full">
+          Get Creative
+        </button>
+    </div>
+    <div className="absolute inset-x-0 bottom-0 mb-4 flex justify-center">
+      <FaCircleChevronDown className="text-4xl animate-bounce" />
+    </div>
+  </div>
+);
+
+const SectionFeatures = () => (
+  <div className="bg-gray-100 flex flex-col justify-center items-center text-center h-full">
+    <h2 className="text-3xl font-semibold mb-6">Features</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8 px-4">
+      <FeatureCard
+        Icon={GrPaint}
+        title="AI-Powered Generation"
+        description="Generate stunning artworks with the help of AI."
+      />
+      <FeatureCard
+        Icon={FaUserAstronaut}
+        title="Artist Appreciation"
+        description="Contributing artists receive credits and recognition."
+      />
+      <FeatureCard
+        Icon={IoIosColorPalette}
+        title="Creative Freedom"
+        description="Let your imagination run wild with limitless possibilities."
+      />
+    </div>
+    <div className="absolute inset-x-0 bottom-0 mb-4 flex justify-center">
+      <FaCircleChevronDown className="text-4xl animate-bounce" />
+    </div>
+  </div>
+);
+
+const FeatureCard:React.FC<any> = ({ Icon, title, description }) => (
+  <div className="p-6 rounded-lg bg-white shadow-xl">
+    <Icon className="mx-auto text-4xl mb-4" />
+    <h3 className="text-xl font-semibold mb-2">{title}</h3>
+    <p>{description}</p>
+  </div>
+);
+
+const SectionHowItWorks = () => (
+  <div className="bg-gray-100 flex flex-col justify-center items-center text-center h-screen px-4 w-screen">
+    <h2 className="text-3xl font-semibold mb-6">How It Works</h2>
+    <div className="space-y-4">
+      <p className="text-lg">1. Enter your creative prompt</p>
+      <p className="text-lg">2. Our AI generates your artwork</p>
+      <p className="text-lg">3. Artists behind the AI model get credited</p>
+    </div>
+    <div className="absolute inset-x-0 bottom-0 mb-4 flex justify-center">
+      <FaCircleChevronDown className="text-4xl animate-bounce" />
+    </div>
+  </div>
+);
+
+const SectionFooter = () => (
+  <div className="bg-gray-800 text-white flex flex-col justify-center items-center text-center h-screen w-screen text-2xl">
+    © 2024 sKrt.ai - All rights reserved.
+  </div>
+);
+
+
+export default Home;
